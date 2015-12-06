@@ -37,13 +37,55 @@ public class PalleteDAO extends DAOAb {
         }
 	}
 	
+	public List<PalleteModel> selectStatusAtualPalletes() throws Exception{
+		Connection connection = getDBConnection();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+      
+        StringBuilder sql = new StringBuilder();
+        
+        sql.append("SELECT pallete.codigo,pallete.identificacao, ");
+        sql.append("produto.CODIGO_BARRAS,produto.descricao,produto.fsc_code,count(codigo_produto) as quantidade ");
+        sql.append("from pallete,produto,produto_pallete ");
+        sql.append("where pallete.codigo = produto_pallete.codigo_pallete ");
+        sql.append("and produto.codigo = produto_pallete.codigo_produto ");
+        sql.append("group by pallete.codigo,pallete.identificacao, ");
+        sql.append("produto.CODIGO_BARRAS,produto.descricao,produto.fsc_code ");
+        sql.append("order by IDENTIFICACAO ");
+
+
+        
+        try {
+        	stmt = connection.prepareStatement(sql.toString());
+            rs = stmt.executeQuery();
+            List<PalleteModel> listaPalletes = new ArrayList<PalleteModel>();
+            while (rs.next()) {
+            	PalleteModel palleteNovo = new PalleteModel();
+                palleteNovo.setCodigo(rs.getLong("codigo"));
+                palleteNovo.setIdentificacao(rs.getString("identificacao"));
+                palleteNovo.setQuantidadeProdutos(rs.getInt("quantidade"));
+                palleteNovo.setProduto(new ProdutoModel());
+                palleteNovo.getProduto().setCodigoBarras(rs.getString("CODIGO_BARRAS"));
+                palleteNovo.getProduto().setFscCode(rs.getString("fsc_code"));
+                palleteNovo.getProduto().setDescricao(rs.getString("descricao"));
+                listaPalletes.add(palleteNovo);
+            }
+        	return listaPalletes;
+        }catch (Exception e) {
+        	throw e;
+        }finally {
+        	rs.close();
+        	stmt.close();
+            connection.close();
+        }
+	}
+	
 	public void insert(PalleteModel palleteModel) throws Exception{
 		Connection connection = getDBConnection();
         PreparedStatement stmt = null;
-        String sql = "insert into pallete values(?,?)";
+        String sql = "insert into pallete(identificacao) values(?)";
         try {
         	stmt = connection.prepareStatement(sql);
-        	stmt.setLong(1, palleteModel.getCodigo());
         	stmt.setString(2, palleteModel.getIdentificacao());
         	stmt.executeUpdate();
         }catch (Exception e) {
@@ -107,14 +149,14 @@ public class PalleteDAO extends DAOAb {
         PreparedStatement stmt = null;
         ResultSet rs = null;
       
-        StringBuilder sql = new StringBuilder("SELECT pallete.codigo,pallete.identificacao from pallete");
+        StringBuilder sql = new StringBuilder("SELECT pallete.codigo,pallete.identificacao, ");
+        sql.append(" (select count(codigo_produto) from produto_pallete where pallete.codigo = produto_pallete.codigo_pallete) as quantidade ");
+        sql.append(" from pallete ");
         sql.append(" WHERE ");
         sql.append(" exists ");
-        sql.append(" (select produto_pallete.codigo_pallete,produto.fsc_code,count(*) from produto,produto_pallete ");
+        sql.append(" (select produto_pallete.codigo_pallete from produto,produto_pallete ");
         sql.append(" where produto.fsc_code = ? and produto.codigo = produto_pallete.codigo_produto ");
-        sql.append(" and pallete.codigo = produto_pallete.codigo_pallete ");
-        sql.append(" group by produto_pallete.codigo_pallete,produto.fsc_code ");
-        sql.append(" having count(*) < 5) ");
+        sql.append(" and pallete.codigo = produto_pallete.codigo_pallete) ");
         sql.append(" order by pallete.identificacao ");
         try {
         	stmt = connection.prepareStatement(sql.toString());
@@ -142,14 +184,14 @@ public class PalleteDAO extends DAOAb {
         PreparedStatement stmt = null;
         ResultSet rs = null;
       
-        StringBuilder sql = new StringBuilder("SELECT pallete.codigo,pallete.identificacao from pallete");
+        StringBuilder sql = new StringBuilder("SELECT pallete.codigo,pallete.identificacao, ");
+        sql.append(" (select count(codigo_produto) from produto_pallete where pallete.codigo = produto_pallete.codigo_pallete) as quantidade ");
+        sql.append(" from pallete ");
         sql.append(" WHERE ");
         sql.append(" exists ");
-        sql.append(" (select produto_pallete.codigo_pallete,produto.codigo_barras,count(*) from produto,produto_pallete ");
+        sql.append(" (select produto_pallete.codigo_pallete from produto,produto_pallete ");
         sql.append(" where produto.codigo_barras = ? and produto.codigo = produto_pallete.codigo_produto ");
-        sql.append(" and pallete.codigo = produto_pallete.codigo_pallete ");
-        sql.append(" group by produto_pallete.codigo_pallete,produto.codigo_barras ");
-        sql.append(" having count(*) < 5) ");
+        sql.append(" and pallete.codigo = produto_pallete.codigo_pallete) ");
         sql.append(" order by pallete.identificacao ");
         try {
         	stmt = connection.prepareStatement(sql.toString());
@@ -160,6 +202,7 @@ public class PalleteDAO extends DAOAb {
             	PalleteModel palleteNovo = new PalleteModel();
             	palleteNovo.setCodigo(rs.getLong("codigo"));
             	palleteNovo.setIdentificacao(rs.getString("identificacao"));
+            	palleteNovo.setQuantidadeProdutos(rs.getInt("quantidade"));
             	listaPalletes.add(palleteNovo);
             }
         	return listaPalletes;
@@ -177,21 +220,20 @@ public class PalleteDAO extends DAOAb {
         PreparedStatement stmt = null;
         ResultSet rs = null;
       
-        StringBuilder sql = new StringBuilder("SELECT pallete.codigo,pallete.identificacao from pallete");
-        sql.append(" WHERE ");
-        sql.append(" not exists ");
-        sql.append(" (select 1 from produto_pallete,produto ");
-        sql.append(" where pallete.codigo = produto_pallete.codigo_pallete ");
-        sql.append(" and produto.codigo = produto_pallete.codigo_produto ");
-        sql.append(" and (produto.codigo_barras = ? or produto.fsc_code = ?)) ");
-        sql.append(" order by pallete.identificacao ");
-        
+        StringBuilder sql = new StringBuilder();
+
+
+        sql.append(" SELECT pallete.codigo,pallete.identificacao "); 
+		sql.append(" from pallete ");
+		sql.append(" left join produto_pallete ");
+		sql.append(" on produto_pallete.codigo_pallete = pallete.codigo ");
+		sql.append(" where produto_pallete.CODIGO_PALLETE is null ");
+		sql.append(" order by pallete.identificacao  ");
+                 
+                 
         try {
         
         	stmt = connection.prepareStatement(sql.toString());
-        	
-        	stmt.setString(1, produtoModel.getCodigoBarras());
-        	stmt.setString(2, produtoModel.getFscCode());
         	
             rs = stmt.executeQuery();
             List<PalleteModel> listaPalletes = new ArrayList<PalleteModel>();

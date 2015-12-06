@@ -4,7 +4,17 @@ public class PalleteModel {
 	
 	private Long codigo;
 	private String identificacao;
+	private Integer quantidadeProdutos;
+	private ProdutoModel produto;
 	
+	public ProdutoModel getProduto() {
+		return produto;
+	}
+
+	public void setProduto(ProdutoModel produto) {
+		this.produto = produto;
+	}
+
 	public PalleteModel(Long codigo, String identificacao) {
 		this.codigo = codigo;
 		this.identificacao = identificacao;
@@ -31,6 +41,14 @@ public class PalleteModel {
 		this.identificacao = identificacao;
 	}
 	
+	public Integer getQuantidadeProdutos() {
+		return quantidadeProdutos;
+	}
+
+	public void setQuantidadeProdutos(Integer quantidadeProdutos) {
+		this.quantidadeProdutos = quantidadeProdutos;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

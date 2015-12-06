@@ -14,6 +14,8 @@ public class ProdutoBusiness{
 	private ProdutoDAO produtoDAO;
 	private PalleteDAO palleteDAO;
 	
+	private static final int LIMITE_MAXIMO_PALLETE = 5;
+	
 	public ProdutoBusiness() {
 		this.produtoDAO = new ProdutoDAO();
 		this.palleteDAO = new PalleteDAO();
@@ -86,51 +88,47 @@ public class ProdutoBusiness{
 				throw new Exception("Produto não encontrado pelo código de barras.");
 			}
 		}
-		if(listaPalletesDisponiveis == null || listaPalletesDisponiveis.size() == 0){
-			listaPalletesDisponiveis = palleteDAO.selectEmptyPallete(produtoModel);
-			PalleteModel palleteModel = listaPalletesDisponiveis.get(0);
-			produtoModel.setPalleteModel(palleteModel);
-			produtoDAO.associarProdutoPallete(produtoModel);
-		}
-		if(produtoModel.getPalleteModel() == null){
-			throw new Exception("Produto não foi associado a nenhum pallete.");
-		}
+		associarProduto(produtoModel, listaPalletesDisponiveis);
 		return produtoModel.getPalleteModel();
 	}
 	
 	public PalleteModel associarProdutoPeloFscCode(ProdutoModel produtoModel) throws Exception{
 		List<PalleteModel> listaPalletesDisponiveis = null;
 		if(StringUtils.isEmpty(produtoModel.getFscCode())){
-			throw new Exception("Obrigatório informar fsc code.");
+			throw new Exception("Obrigatório informar o fsc code.");
 		}else if(!StringUtils.isEmpty(produtoModel.getFscCode())){
 			produtoModel = produtoDAO.selectProductByFscCode(produtoModel);
 			if(produtoModel != null){
 				listaPalletesDisponiveis = palleteDAO.selectAllPalleteByProductFSCCode(produtoModel);
 			}else{
 				throw new Exception("Produto não encontrado pelo fsc code.");
-			}		
+			}
 		}
-		if(listaPalletesDisponiveis == null || listaPalletesDisponiveis.size() == 0){
+		associarProduto(produtoModel, listaPalletesDisponiveis);
+		return produtoModel.getPalleteModel();
+	}
+
+	protected void associarProduto(ProdutoModel produtoModel, List<PalleteModel> listaPalletesDisponiveis) throws Exception {
+		if(listaPalletesDisponiveis.size() > 0){
+			for(PalleteModel palleteModel: listaPalletesDisponiveis){
+				if(palleteModel.getQuantidadeProdutos() < LIMITE_MAXIMO_PALLETE){
+					produtoModel.setPalleteModel(palleteModel);
+					produtoDAO.associarProdutoPallete(produtoModel);
+					break;	
+				}
+			}
+		}
+		if(produtoModel.getPalleteModel() == null){
 			listaPalletesDisponiveis = palleteDAO.selectEmptyPallete(produtoModel);
-			PalleteModel palleteModel = listaPalletesDisponiveis.get(0);
-			produtoModel.setPalleteModel(palleteModel);
-			produtoDAO.associarProdutoPallete(produtoModel);
+			for(PalleteModel palleteModel: listaPalletesDisponiveis){
+				produtoModel.setPalleteModel(palleteModel);
+				produtoDAO.associarProdutoPallete(produtoModel);
+				break;
+			}
 		}
 		if(produtoModel.getPalleteModel() == null){
 			throw new Exception("Produto não foi associado a nenhum pallete.");
 		}
-		return produtoModel.getPalleteModel();
-	}
-	
-	private boolean associarProdutoPallete(List<PalleteModel> listaPalletesDisponiveis,ProdutoModel produtoModel) throws Exception{
-		if(listaPalletesDisponiveis != null && listaPalletesDisponiveis.size() > 0){
-			PalleteModel palleteModel = listaPalletesDisponiveis.get(0);
-			produtoModel.setPalleteModel(palleteModel);
-			produtoDAO.associarProdutoPallete(produtoModel);
-			return true;
-		}
-		return false;
-		
 	}
 	
 }

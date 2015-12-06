@@ -133,10 +133,9 @@ public class ProdutoDAO extends DAOAb {
 	public void insert(ProdutoModel produto) throws Exception{
 		Connection connection = getDBConnection();
         PreparedStatement stmt = null;
-        String sql = "insert into produto values(?,?,?,?)";
+        String sql = "insert into produto((codigo_barras,fsc_code,descricao)) values(?,?,?)";
         try {
         	stmt = connection.prepareStatement(sql);
-        	stmt.setLong(1, produto.getCodigo());
         	stmt.setString(2, produto.getCodigoBarras());
         	stmt.setString(3, produto.getFscCode());
         	stmt.setString(4, produto.getDescricao());
@@ -184,7 +183,7 @@ public class ProdutoDAO extends DAOAb {
 	public void associarProdutoPallete(ProdutoModel produto) throws Exception{
 		Connection connection = getDBConnection();
         PreparedStatement stmt = null;
-        String sql = "insert into produto_pallete (codigo,codigo_produto,codigo_pallete) values ((select (nvl(max(codigo),0))+1 from produto_pallete) , ?,?)";
+        String sql = "insert into produto_pallete (codigo_produto,codigo_pallete) values (?,?)";
         try {
         	stmt = connection.prepareStatement(sql);
         	stmt.setLong(1, produto.getCodigo());

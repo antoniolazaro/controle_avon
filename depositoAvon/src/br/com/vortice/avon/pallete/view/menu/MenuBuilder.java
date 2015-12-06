@@ -43,7 +43,7 @@ public class MenuBuilder {
 	    entradaProdutoItem.setOnAction(actionEvent -> new AssociarProdutoMenuItem().buildMenuItem(primaryStage));
 	    associarProduto.getItems().addAll(entradaProdutoItem);
 	    
-	    MenuItem visualizarProdutosPalleteItem = new MenuItem("Visualizar produtos por posição");
+	    MenuItem visualizarProdutosPalleteItem = new MenuItem("Visualizar status pallets.");
 	    visualizarProdutosPalleteItem.setOnAction(actionEvent -> new VisualizarProdutosPalleteMenuItem().buildMenuItem(primaryStage));
 	    associarProduto.getItems().addAll(visualizarProdutosPalleteItem);
 	    

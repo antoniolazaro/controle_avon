@@ -19,6 +19,10 @@ public class PalleteBusiness {
 		return palleteDAO.selectAll();
 	}
 	
+	public List<PalleteModel> selectStatusAtualPalletes() throws Exception{
+		return palleteDAO.selectStatusAtualPalletes();
+	}
+	
 	public void insert(PalleteModel palleteModel) throws Exception{
 		if(palleteModel != null && !StringUtils.isEmpty(palleteModel.getIdentificacao())){
 			palleteDAO.insert(palleteModel);
