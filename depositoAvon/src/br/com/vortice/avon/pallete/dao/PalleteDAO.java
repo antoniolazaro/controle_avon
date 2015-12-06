@@ -89,7 +89,7 @@ public class PalleteDAO extends DAOAb {
         	stmt.setString(1, palleteModel.getIdentificacao());
         	stmt.executeUpdate();
         }catch (Exception e) {
-        	if(e.getMessage().contains("CODIGO_PALLETE_UNIQUE")){
+        	if(e.getMessage().contains("identificacao_pallete_unique")){
 			e = new Exception("Pallete já existe com essa identificação.");
 		}
         	throw e;
