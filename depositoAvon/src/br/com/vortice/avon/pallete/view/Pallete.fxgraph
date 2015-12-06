@@ -1,0 +1,10 @@
+package br.com.vortice.avon.pallete.view
+
+import javafx.scene.layout.BorderPane
+import br.com.vortice.avon.pallete.controller.PalleteController
+
+component Pallete controlledby PalleteController {
+	BorderPane {
+		//TODO Add Nodes
+	}
+}
