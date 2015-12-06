@@ -86,9 +86,12 @@ public class PalleteDAO extends DAOAb {
         String sql = "insert into pallete(identificacao) values(?)";
         try {
         	stmt = connection.prepareStatement(sql);
-        	stmt.setString(2, palleteModel.getIdentificacao());
+        	stmt.setString(1, palleteModel.getIdentificacao());
         	stmt.executeUpdate();
         }catch (Exception e) {
+        	if(e.getMessage().contains("CODIGO_PALLETE_UNIQUE")){
+			e = new Exception("Pallete já existe com essa identificação.");
+		}
         	throw e;
         }finally {
         	stmt.close();
